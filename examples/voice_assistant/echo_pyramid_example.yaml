@@ -94,6 +94,11 @@ ota:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
+  domain: '.thuis.local'
+  manual_ip:
+   static_ip: 192.168.2.142
+   gateway: 192.168.2.254
+   subnet: 255.255.255.0
   
   ap:
     ssid: "Echo-Pyramid Fallback Hotspot"
@@ -169,17 +174,6 @@ si5351:
   id: clock_gen
   i2c_id: ext_bus
   address: 0x60
-  variant: a
-  package: msop10
-  crystal:
-    # 27 MHz passive crystal, 10 pF load capacitance.
-    frequency: 27MHz
-    load_capacitance: 10pF
-  # CLK1 feeds I2S_MCLK_DAC (ES8311) and I2S_MCLK_ADC (ES7210) through 22R
-  # series resistors. CLK0 (R3 not fitted) and CLK2 are left unconnected.
-  clocks:
-    - pin: CLK1
-      frequency: 6.144MHz
       
 # I2S Bus Configuration
 i2s_audio:
@@ -300,11 +294,6 @@ switch:
         output: true
     icon: "mdi:volume-high"
     restore_mode: RESTORE_DEFAULT_ON
-
-  # AW87559 PA
-  - platform: aw87559
-    id: pa_enable
-    name: "Enable PA"
 
   - platform: template
     name: Mute Microphone
@@ -451,7 +440,7 @@ micro_wake_word:
     - script.execute:
         id: play_sound
         priority: true
-        sound_file: !lambda return id(wake_word_triggered_sound);
+        sound_file: !lambda return const_cast<audio::AudioFile*>(id(wake_word_triggered_sound));
 
     - wait_until:
         condition:
@@ -538,7 +527,7 @@ voice_assistant:
           - script.execute:
               id: play_sound
               priority: true
-              sound_file: !lambda return id(error_cloud_expired);
+              sound_file: !lambda return const_cast<audio::AudioFile*>(id(error_cloud_expired));
           - script.execute: draw_display
           
   on_client_connected:
